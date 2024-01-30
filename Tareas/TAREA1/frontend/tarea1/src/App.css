@@ -1,0 +1,86 @@
+:root {
+    --primary-100: #2E8B57;
+    --primary-200: #61bc84;
+    --primary-300: #c6ffe6;
+    --accent-100: #8FBC8F;
+    --accent-200: #345e37;
+    --text-100: #FFFFFF;
+    --text-200: #e0e0e0;
+    --bg-100: #1E1E1E;
+    --bg-200: #2d2d2d;
+    --bg-300: #454545;
+}
+
+body {
+    background-color: var(--bg-100);
+    color: var(--text-100);
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    margin: 0;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5em;
+    margin-top: 1em;
+}
+
+table {
+    width: 50%;
+    border-collapse: collapse;
+    margin-bottom: 1em;
+    background-color: var(--bg-300);
+}
+
+th, td {
+    padding: 1em;
+    border: 1px solid var(--primary-200);
+    color: var(--text-200);
+}
+
+th {
+    background-color: var(--primary-100);
+    color: var(--text-100);
+}
+
+tr:nth-child(even) {
+    background-color: var(--bg-200);
+}
+
+tr:hover {
+    background-color: var(--accent-100);
+    cursor: pointer;
+}
+
+button {
+    padding: 0.5em 1em;
+    border: none;
+    border-radius: 0.3em;
+    background-color: var(--primary-100);
+    color: var(--text-100);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-bottom: 3em;
+}
+
+button:hover {
+    background-color: var(--primary-200);
+}
+
+button:active {
+    background-color: var(--primary-300);
+}
+
+button:disabled {
+    background-color: var(--bg-200);
+    color: var(--text-200);
+    cursor: not-allowed;
+}
+
