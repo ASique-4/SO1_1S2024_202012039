@@ -1,0 +1,23 @@
+# Utiliza la imagen oficial de Go específica para la versión 1.18.1
+FROM golang:1.18-alpine
+
+# Establece el directorio de trabajo dentro del contenedor
+WORKDIR /go/src/app
+
+# Copia el go.mod y go.sum para descargar las dependencias de manera eficiente
+COPY go.mod ./
+
+# Descarga e instala las dependencias (si las hay)
+RUN go mod download
+
+# Copia el resto del código fuente al directorio de trabajo
+COPY . .
+
+# Compila la aplicación
+RUN go build -o app .
+
+# Establece el comando predeterminado para ejecutar la aplicación
+CMD ["./app"]
+
+# Exponer el puerto en el que se ejecutará la aplicación
+EXPOSE 8080
