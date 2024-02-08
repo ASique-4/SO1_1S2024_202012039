@@ -17,8 +17,23 @@ function App() {
     context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
     const base64String = canvasRef.current.toDataURL('image/png').split(",")[1];
     setBase64Image(base64String);
+
     
-    
+    fetch('http://localhost:8080/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ image: base64Image })
+    })
+      .then(response => response.json())
+      .then(data => {
+        // Handle the response data here
+        console.log(data);
+      })
+      .catch(error => {
+        // Handle any errors here
+      });
   };
 
   return (
