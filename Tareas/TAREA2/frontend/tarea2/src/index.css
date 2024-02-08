@@ -1,0 +1,84 @@
+:root {
+  --primary-100: #2E8B57;
+  --primary-200: #61bc84;
+  --primary-300: #c6ffe6;
+  --accent-100: #8FBC8F;
+  --accent-200: #345e37;
+  --text-100: #FFFFFF;
+  --text-200: #e0e0e0;
+  --bg-100: #1E1E1E;
+  --bg-200: #2d2d2d;
+  --bg-300: #454545;
+}
+
+body {
+  background-color: var(--bg-100);
+}
+
+.camara-btn {
+  background-color: var(--primary-100);
+  color: var(--text-100);
+  border: none;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.camara-btn:hover {
+  background-color: var(--primary-200);
+}
+
+.camara-btn:active {
+  background-color: var(--primary-300);
+}
+
+.foto-btn {
+  background-color: var(--primary-100);
+  color: var(--text-100);
+  border: none;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.foto-btn:hover {
+  background-color: var(--primary-200);
+}
+
+.foto-btn:active {
+  background-color: var(--primary-300);
+}
+
+
+.video {
+  width: 40%;
+  height: 480px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.canvas {
+  width: 40%;
+  height: 480px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.video-container {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
