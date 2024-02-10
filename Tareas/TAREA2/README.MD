@@ -24,10 +24,3 @@ La base de datos debe almacenar los siguientes datos:
 
 Toda la aplicación está contenerizada utilizando Docker Compose. Esto permite gestionar y orquestar los contenedores de manera sencilla y eficiente.
 
-## Uso
-
-Para ejecutar la aplicación, se debe clonar el repositorio y ejecutar el siguiente comando en la raíz del proyecto:
-
-```bash
-docker-compose up
-```
