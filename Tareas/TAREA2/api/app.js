@@ -10,7 +10,8 @@ mongoose.connect(`mongodb://MongoDB:27017/tarea2-db`, { useNewUrlParser: true, u
 
 // Define el modelo de imagen
 const Foto = mongoose.model('Foto', new mongoose.Schema({
-    image: String
+    image: String,
+    date: String
 }), 'fotos');
 
 app.use(cors()); // Usa CORS en todas las rutas

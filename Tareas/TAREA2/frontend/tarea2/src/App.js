@@ -24,7 +24,10 @@ function App() {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ image: base64Image })
+      body: JSON.stringify({ 
+        image: base64Image,
+        date: new Date().toISOString()
+      })
     })
       .then(response => response.json())
       .then(data => {
