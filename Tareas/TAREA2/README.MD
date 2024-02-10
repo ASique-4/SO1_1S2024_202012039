@@ -8,7 +8,7 @@ Esta es una aplicación compuesta por 3 contenedores:
 
 El objetivo de esta aplicación es permitir el ingreso de fotografías tomadas desde el navegador web y almacenarlas en una base de datos no relacional. Además, se debe poder visualizar las fotos ingresadas. Para lograr esto, se utiliza una base de datos MongoDB y se guarda la información de forma persistente.
 
-## VIdeo
+## Video
 
 El video se encuentra en este enlace: [Tarea2](https://drive.google.com/file/d/1heuq_7OUdn_m0wpqvpP7uQaV-FaV_bll/view?usp=sharinghttps://youtu.be/)
 *Cuidado con el volumen al inicio*
