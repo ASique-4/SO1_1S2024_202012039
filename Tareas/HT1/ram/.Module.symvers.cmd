@@ -1,0 +1,1 @@
+savedcmd_/home/asique/Documentos/SO1/SO1_1S2024_202012039/Tareas/HT1/ram/Module.symvers :=  scripts/mod/modpost -m -a      -o /home/asique/Documentos/SO1/SO1_1S2024_202012039/Tareas/HT1/ram/Module.symvers -T /home/asique/Documentos/SO1/SO1_1S2024_202012039/Tareas/HT1/ram/modules.order -i Module.symvers -e 

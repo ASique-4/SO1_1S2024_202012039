@@ -1,0 +1,1 @@
+savedcmd_/home/asique/Documentos/SO1/SO1_1S2024_202012039/Tareas/HT1/modulos/modulo_HT1.mod := printf '%s\n'   modulo_HT1.o | awk '!x[$$0]++ { print("/home/asique/Documentos/SO1/SO1_1S2024_202012039/Tareas/HT1/modulos/"$$0) }' > /home/asique/Documentos/SO1/SO1_1S2024_202012039/Tareas/HT1/modulos/modulo_HT1.mod

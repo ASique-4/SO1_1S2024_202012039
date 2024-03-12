@@ -1,0 +1,1 @@
+savedcmd_/home/asique/Documentos/SO1/SO1_1S2024_202012039/Tareas/HT1/ram/ram.mod := printf '%s\n'   ram.o | awk '!x[$$0]++ { print("/home/asique/Documentos/SO1/SO1_1S2024_202012039/Tareas/HT1/ram/"$$0) }' > /home/asique/Documentos/SO1/SO1_1S2024_202012039/Tareas/HT1/ram/ram.mod
