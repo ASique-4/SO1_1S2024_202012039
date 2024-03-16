@@ -40,14 +40,14 @@ static const struct file_operations proc_fops = {
 
 static int __init ram_module_init(void)
 {
-    proc_create("ram", 0, NULL, &proc_fops);
+    proc_create("ram_so1_1s2024", 0, NULL, &proc_fops);
     printk(KERN_INFO "Módulo RAM montado\n");
     return 0;
 }
 
 static void __exit ram_module_exit(void)
 {
-    remove_proc_entry("ram", NULL);
+    remove_proc_entry("ram_so1_1s2024", NULL);
     printk(KERN_INFO "Módulo RAM eliminado\n");
 }
 
