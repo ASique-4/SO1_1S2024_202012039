@@ -1,27 +1,55 @@
-#include <linux/init.h>
-#include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/proc_fs.h>
 #include <linux/sysinfo.h>
+#include <linux/seq_file.h>
+#include <linux/mm.h>
 
-static int __init ram_module_init(void) {
-    struct sysinfo info;
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Angel Sique");
+MODULE_DESCRIPTION("Informacion de la RAM");
+MODULE_VERSION("1.0");
 
-    si_meminfo(&info);
+struct sysinfo inf;
 
-    printk(KERN_INFO "RAM Total: %lu KB\n", (info.totalram * (unsigned long)info.mem_unit) / 1024);
-    printk(KERN_INFO "RAM Libre: %lu KB\n", (info.freeram * (unsigned long)info.mem_unit) / 1024);
+static int write_to_proc(struct seq_file *file_proc, void *v)
+{
+    unsigned long total, used, notused;
+    unsigned long porc;
+    si_meminfo(&inf);
 
+    total = inf.totalram * inf.mem_unit;
+    used = (inf.totalram - inf.freeram) * inf.mem_unit;
+    porc = (used * 100) / total;
+    notused = total - used;
+
+    seq_printf(file_proc, "{\"totalRam\":%lu, \"memoriaEnUso\":%lu, \"porcentaje\":%lu, \"libre\":%lu }", total, used, porc, notused);
     return 0;
 }
 
-static void __exit ram_module_exit(void) {
-    printk(KERN_INFO "Exiting RAM module\n");
+static int open_proc(struct inode *inode, struct file *file)
+{
+    return single_open(file, write_to_proc, NULL);
+}
+
+static const struct file_operations proc_fops = {
+    .open = open_proc,
+    .read = seq_read,
+    .llseek = seq_lseek,
+    .release = single_release,
+};
+
+static int __init ram_module_init(void)
+{
+    proc_create("ram", 0, NULL, &proc_fops);
+    printk(KERN_INFO "Módulo RAM montado\n");
+    return 0;
+}
+
+static void __exit ram_module_exit(void)
+{
+    remove_proc_entry("ram", NULL);
+    printk(KERN_INFO "Módulo RAM eliminado\n");
 }
 
 module_init(ram_module_init);
 module_exit(ram_module_exit);
-
-MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Angel Sique");
-MODULE_DESCRIPTION("Módulo de kernel para mostrar información sobre la RAM");
