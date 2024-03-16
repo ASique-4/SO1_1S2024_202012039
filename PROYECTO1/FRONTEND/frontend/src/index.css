@@ -87,3 +87,69 @@ code {
 .navbar-link:hover {
   color: var(--accent-100);
 }
+
+.navbar-divider {
+  margin-right: 1rem;
+  margin-left: 1rem;
+  color: var(--text-100);
+  border-right: 1px solid var(--text-100);
+  border-left: 1px solid var(--text-100);
+}
+
+.pie-chart {
+  width: 30%;
+  margin: 20px;
+  padding: 20px;
+}
+
+.line-chart {
+  width: 60%;
+  margin: 20px;
+  padding: 20px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+.new-button,
+.stop-button,
+.ready-button,
+.kill-button {
+  padding: 0.5rem 1rem;
+  margin-right: 1rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.new-button {
+  background-color: #90EE90; /* Verde claro para indicar "new" */
+  color: var(--text-100);
+}
+
+.stop-button {
+  background-color: #FFA500; /* Naranja */
+  color: var(--text-100);
+}
+
+
+.ready-button {
+  background-color: #4682B4; /* Azul acero para indicar "ready" */
+  color: var(--text-100);
+}
+
+.kill-button {
+  background-color: #ff6347; /* Tonos de rojo */
+  color: var(--text-100);
+}
+
+.pid-text {
+  margin-top: 1rem;
+  color: var(--text-200);
+}

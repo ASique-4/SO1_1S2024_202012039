@@ -5,5 +5,9 @@ USE PROYECTO1;
 CREATE TABLE MemoriaRAM (
     id INT PRIMARY KEY AUTO_INCREMENT,
     uso DECIMAL(5,2),
+    total DECIMAL(5,2),
+    enUso DECIMAL(5,2),
+    porcentaje DECIMAL(5,2),
+    libre DECIMAL(5,2),
     fechaHora DATETIME
 );
