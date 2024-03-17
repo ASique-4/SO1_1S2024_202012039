@@ -41,14 +41,14 @@ static struct proc_ops archivo_operaciones = {
 
 static int __init modulo_init(void)
 {
-    proc_create("cpu_info", 0, NULL, &archivo_operaciones);
+    proc_create("cpu_so1_1s2024", 0, NULL, &archivo_operaciones);
     printk(KERN_INFO "Insertando el módulo CPU\n");
     return 0;
 }
 
 static void __exit modulo_cleanup(void)
 {
-    remove_proc_entry("cpu_info", NULL);
+    remove_proc_entry("cpu_so1_1s2024", NULL);
     printk(KERN_INFO "Eliminando el módulo CPU\n");
 }
 
