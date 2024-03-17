@@ -45,7 +45,7 @@ func saveRamData(w http.ResponseWriter, r *http.Request) {
 
 	// Guardar los datos en la base de datos
 	now := time.Now().Format("2006-01-02 15:04:05")
-	_, err = db.Exec("INSERT INTO MemoriaRAM (totalRam, memoriaEnUso, porcentaje, libre, fechaHora) VALUES (?, ?, ?, ?, ?)", ram.Total, ram.EnUso, ram.Porcentaje, ram.Libre, now)
+	_, err = db.Exec("INSERT INTO MemoriaRAM (total, enUso, porcentaje, libre, fechaHora) VALUES (?, ?, ?, ?, ?)", ram.Total, ram.EnUso, ram.Porcentaje, ram.Libre, now)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
