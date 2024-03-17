@@ -8,7 +8,7 @@
 #include <linux/mm.h>
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Jhonathan Tocay & Angel Sique");
+MODULE_AUTHOR("Angel Sique");
 MODULE_DESCRIPTION("Informacion cpu");
 MODULE_VERSION("1.0");
 
@@ -17,15 +17,12 @@ static int escribir_a_proc(struct seq_file *file_proc, void *v)
     unsigned long total_cpu_time = jiffies_to_msecs(get_jiffies_64());
     unsigned long total_usage = 0;
     unsigned long free_cpu_time;
+    unsigned long rss;
+    unsigned long total_ram_pages;
     struct task_struct *task;
     struct task_struct *task_child;
     struct list_head *list;
-    unsigned long rss;
-    unsigned long total_ram_pages;
-    int running = 0;
-    int sleeping = 0;
-    int zombie = 0;
-    int stopped = 0;
+    int running = 0, sleeping = 0, zombie = 0, stopped = 0;
 
     total_ram_pages = totalram_pages();
     if (!total_ram_pages) {
@@ -75,7 +72,7 @@ static int escribir_a_proc(struct seq_file *file_proc, void *v)
         }
         seq_printf(file_proc, "\"pid\":%d,\n", task->pid);
         seq_printf(file_proc, "\"name\":\"%s\",\n", task->comm);
-        seq_printf(file_proc, "\"user\": %d,\n", from_kuid(&init_user_ns, task_uid(task)));
+        seq_printf(file_proc, "\"user\": %d,\n", from_kuid(&init_user_ns, task->cred->uid));
         seq_printf(file_proc, "\"state\":%ld,\n", task->__state);
         int porcentaje = (rss * 100) / total_ram_pages;
         seq_printf(file_proc, "\"ram\":%d,\n", porcentaje);
