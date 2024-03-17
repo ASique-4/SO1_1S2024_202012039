@@ -5,35 +5,39 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os/exec"
+	"os"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
+// Datos de la RAM
 type RamData struct {
 	Total      uint64 `json:"totalRam"`
 	EnUso      uint64 `json:"memoriaEnUso"`
 	Porcentaje uint64 `json:"porcentaje"`
 	Libre      uint64 `json:"libre"`
+	FechaHora  string `json:"fechaHora"`
 }
 
+// Conexión a la base de datos
 var db *sql.DB
 
+// Función para manejar las solicitudes HTTP POST
 func saveRamData(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Ejecutar el comando cat
-	out, err := exec.Command("cat", "/proc/ram_so1_1s2024").Output()
+	// Leer los datos de /proc/ram_so1_1s2024
+	file, err := os.Open("/proc/ram_so1_1s2024")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer file.Close()
 
-	// Decodificar el JSON
 	var ram RamData
-	err = json.Unmarshal(out, &ram)
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&ram)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -41,22 +45,96 @@ func saveRamData(w http.ResponseWriter, r *http.Request) {
 
 	// Guardar los datos en la base de datos
 	now := time.Now().Format("2006-01-02 15:04:05")
-	_, err = db.Exec("INSERT INTO MemoriaRAM (total, enUso, porcentaje, libre, fechaHora) VALUES (?, ?, ?, ?, ?)", ram.Total, ram.EnUso, ram.Porcentaje, ram.Libre, now)
+	_, err = db.Exec("INSERT INTO MemoriaRAM (totalRam, memoriaEnUso, porcentaje, libre, fechaHora) VALUES (?, ?, ?, ?, ?)", ram.Total, ram.EnUso, ram.Porcentaje, ram.Libre, now)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// Responder al cliente
+	w.WriteHeader(http.StatusCreated)
+}
+
+// Función para manejar las solicitudes HTTP GET a /ram
+func getRamData(w http.ResponseWriter, r *http.Request) {
+	// Consultar los datos de la tabla MemoriaRAM
+	rows, err := db.Query("SELECT totalRam, memoriaEnUso, porcentaje, libre, fechaHora FROM MemoriaRAM")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Leer los resultados de la consulta
+	var datos []RamData
+	for rows.Next() {
+		var dato RamData
+		err := rows.Scan(&dato.Total, &dato.EnUso, &dato.Porcentaje, &dato.Libre, &dato.FechaHora)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		datos = append(datos, dato)
+	}
+
+	// Comprobar si hubo errores al leer los resultados
+	if err := rows.Err(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Convertir los datos a JSON
+	jsonData, err := json.Marshal(datos)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Enviar los datos al cliente
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonData)
 }
 
 func main() {
-	// Conexión a la base de datos
-	db, err := sql.Open("mysql", "user:password@/dbname")
+	// Cargar variables de entorno desde el archivo .env
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error cargando el archivo .env")
+	}
+
+	// Obtener las credenciales de la base de datos desde las variables de entorno
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASS")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+
+	// Configurar la conexión a la base de datos MySQL
+	dbURI := dbUser + ":" + dbPass + "@tcp(" + dbHost + ":" + dbPort + ")/" + dbName
+	db, err = sql.Open("mysql", dbURI)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	http.HandleFunc("/ram", saveRamData)
+	// Intentar hacer ping a la base de datos para verificar la conexión
+	err = db.Ping()
+	if err != nil {
+		log.Fatal("Error al conectar a la base de datos: ", err)
+	} else {
+		log.Println("Conexión a la base de datos exitosa")
+	}
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	// Crear el enrutador HTTP
+	router := mux.NewRouter()
+
+	// Manejar la ruta POST para guardar datos de RAM
+	router.HandleFunc("/ram", saveRamData).Methods("POST")
+
+	// Manejar la ruta GET para obtener datos de RAM
+	router.HandleFunc("/ram", getRamData).Methods("GET")
+
+	// Iniciar el servidor HTTP
+	log.Println("Servidor iniciado en el puerto 8080")
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
