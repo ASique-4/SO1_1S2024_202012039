@@ -277,10 +277,10 @@ func main() {
 	router.HandleFunc("/cpu", getCpuData).Methods("GET")
 
 	// Manejar la ruta GET para obtener todos los datos de CPU
-	http.HandleFunc("/cpu/all", getAllCpuData)
+	router.HandleFunc("/cpu/all", getAllCpuData).Methods("GET")
 
 	// Manejar la ruta GET para obtener todos los datos de RAM
-	http.HandleFunc("/ram/all", getAllRamData)
+	router.HandleFunc("/ram/all", getAllRamData).Methods("GET")
 
 	// Configurar CORS
 	c := cors.New(cors.Options{
