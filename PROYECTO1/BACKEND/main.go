@@ -173,6 +173,64 @@ func getRamData(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
+func getAllCpuData(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT total, enUso, porcentaje, libre, fechaHora FROM MemoriaCPU ORDER BY fechaHora")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var datos []CpuData
+	for rows.Next() {
+		var dato CpuData
+		err := rows.Scan(&dato.Total, &dato.EnUso, &dato.Porcentaje, &dato.Libre, &dato.FechaHora)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		datos = append(datos, dato)
+	}
+
+	jsonData, err := json.Marshal(datos)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonData)
+}
+
+func getAllRamData(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT total, enUso, porcentaje, libre, fechaHora FROM MemoriaRAM ORDER BY fechaHora")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var datos []RamData
+	for rows.Next() {
+		var dato RamData
+		err := rows.Scan(&dato.Total, &dato.EnUso, &dato.Porcentaje, &dato.Libre, &dato.FechaHora)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		datos = append(datos, dato)
+	}
+
+	jsonData, err := json.Marshal(datos)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonData)
+}
+
 func main() {
 	// Cargar variables de entorno desde el archivo .env
 	err := godotenv.Load()
@@ -217,6 +275,12 @@ func main() {
 
 	// Manejar la ruta GET para obtener datos de CPU
 	router.HandleFunc("/cpu", getCpuData).Methods("GET")
+
+	// Manejar la ruta GET para obtener todos los datos de CPU
+	http.HandleFunc("/cpu/all", getAllCpuData)
+
+	// Manejar la ruta GET para obtener todos los datos de RAM
+	http.HandleFunc("/ram/all", getAllRamData)
 
 	// Configurar CORS
 	c := cors.New(cors.Options{
