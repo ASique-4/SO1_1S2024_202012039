@@ -51,8 +51,10 @@ func saveRamData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Responder al cliente
+	// Responder al cliente con un código de estado 201 (Created)
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(`{"message": "Datos de RAM guardados"}`))
 }
 
 // Función para manejar las solicitudes HTTP GET a /ram
