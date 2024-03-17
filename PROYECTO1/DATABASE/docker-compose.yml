@@ -4,7 +4,7 @@ services:
     image: "mysql"
     container_name: 'MYSQL_Base'
     environment:
-      MYSQL_ROOT_PASSWORD: DB_PASS
+      MYSQL_ROOT_PASSWORD: base123
     volumes:
       - base_mysql:/var/lib/mysql      
     ports:
