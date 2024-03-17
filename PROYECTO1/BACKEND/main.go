@@ -6,6 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
+	"strconv"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -36,23 +39,30 @@ type CpuData struct {
 }
 
 func saveCpuData(w http.ResponseWriter, r *http.Request) {
-	file, err := os.Open("/proc/cpu_so1_1s2024")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer file.Close()
-
-	var cpu CpuData
-	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&cpu)
+	out, err := exec.Command("mpstat", "1", "1").Output()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	now := time.Now().Format("2006-01-02 15:04:05")
-	_, err = db.Exec("INSERT INTO MemoriaCPU (total, enUso, porcentaje, libre, fechaHora) VALUES (?, ?, ?, ?, ?)", cpu.Total, cpu.EnUso, cpu.Porcentaje, cpu.Libre, now)
+	lines := strings.Split(string(out), "\n")
+	fields := strings.Fields(lines[3])
+
+	idle, err := strconv.ParseFloat(fields[11], 64)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	cpu := CpuData{
+		Total:      100,
+		EnUso:      uint64(100 - idle),
+		Porcentaje: uint64(100 - idle),
+		Libre:      uint64(idle),
+		FechaHora:  time.Now().Format("2006-01-02 15:04:05"),
+	}
+
+	_, err = db.Exec("INSERT INTO MemoriaCPU (total, enUso, porcentaje, libre, fechaHora) VALUES (?, ?, ?, ?, ?)", cpu.Total, cpu.EnUso, cpu.Porcentaje, cpu.Libre, cpu.FechaHora)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -64,32 +74,10 @@ func saveCpuData(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCpuData(w http.ResponseWriter, r *http.Request) {
-	file, err := os.Open("/proc/cpu_so1_1s2024")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer file.Close()
-
-	var cpu CpuData
-	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&cpu)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	now := time.Now().Format("2006-01-02 15:04:05")
-	_, err = db.Exec("INSERT INTO MemoriaCPU (total, enUso, porcentaje, libre, fechaHora) VALUES (?, ?, ?, ?, ?)", cpu.Total, cpu.EnUso, cpu.Porcentaje, cpu.Libre, now)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	row := db.QueryRow("SELECT total, enUso, porcentaje, libre, fechaHora FROM MemoriaCPU ORDER BY fechaHora DESC LIMIT 1")
 
 	var dato CpuData
-	err = row.Scan(&dato.Total, &dato.EnUso, &dato.Porcentaje, &dato.Libre, &dato.FechaHora)
+	err := row.Scan(&dato.Total, &dato.EnUso, &dato.Porcentaje, &dato.Libre, &dato.FechaHora)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
