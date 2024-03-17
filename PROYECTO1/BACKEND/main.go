@@ -23,18 +23,19 @@ type RamData struct {
 	FechaHora  string `json:"fechaHora"`
 }
 
+// Conexión a la base de datos
+var db *sql.DB
+
 // Datos de la CPU
 type CpuData struct {
-	Total      uint64 `json:"totalCpu"`
-	EnUso      uint64 `json:"cpuEnUso"`
-	Porcentaje uint64 `json:"porcentaje"`
-	Libre      uint64 `json:"libre"`
+	Total      uint64 `json:"cpu_total"`
+	EnUso      uint64 `json:"cpu_uso"`
+	Porcentaje uint64 `json:"cpu_porcentaje"`
+	Libre      uint64 `json:"cpu_libre"`
 	FechaHora  string `json:"fechaHora"`
 }
 
-// Función para manejar las solicitudes HTTP POST a /cpu
 func saveCpuData(w http.ResponseWriter, r *http.Request) {
-	// Leer los datos de /proc/cpu_so1_1s2024
 	file, err := os.Open("/proc/cpu_so1_1s2024")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -50,7 +51,6 @@ func saveCpuData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Guardar los datos en la base de datos
 	now := time.Now().Format("2006-01-02 15:04:05")
 	_, err = db.Exec("INSERT INTO MemoriaCPU (total, enUso, porcentaje, libre, fechaHora) VALUES (?, ?, ?, ?, ?)", cpu.Total, cpu.EnUso, cpu.Porcentaje, cpu.Libre, now)
 	if err != nil {
@@ -58,15 +58,12 @@ func saveCpuData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Responder al cliente con un código de estado 201 (Created)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(`{"message": "Datos de CPU guardados"}`))
 }
 
-// Función para manejar las solicitudes HTTP GET a /cpu
 func getCpuData(w http.ResponseWriter, r *http.Request) {
-	// Leer los datos de /proc/cpu_so1_1s2024
 	file, err := os.Open("/proc/cpu_so1_1s2024")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -82,7 +79,6 @@ func getCpuData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Guardar los datos en la base de datos
 	now := time.Now().Format("2006-01-02 15:04:05")
 	_, err = db.Exec("INSERT INTO MemoriaCPU (total, enUso, porcentaje, libre, fechaHora) VALUES (?, ?, ?, ?, ?)", cpu.Total, cpu.EnUso, cpu.Porcentaje, cpu.Libre, now)
 	if err != nil {
@@ -90,7 +86,6 @@ func getCpuData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Consultar el último dato ingresado en la tabla MemoriaCPU
 	row := db.QueryRow("SELECT total, enUso, porcentaje, libre, fechaHora FROM MemoriaCPU ORDER BY fechaHora DESC LIMIT 1")
 
 	var dato CpuData
@@ -100,20 +95,15 @@ func getCpuData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convertir los datos a JSON
 	jsonData, err := json.Marshal(dato)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Enviar los datos al cliente
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonData)
 }
-
-// Conexión a la base de datos
-var db *sql.DB
 
 // Función para manejar las solicitudes HTTP POST
 func saveRamData(w http.ResponseWriter, r *http.Request) {
