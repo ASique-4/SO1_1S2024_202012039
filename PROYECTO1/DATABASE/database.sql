@@ -4,10 +4,19 @@ USE PROYECTO1;
 
 CREATE TABLE MemoriaRAM (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    uso DECIMAL(5,2),
-    total DECIMAL(5,2),
-    enUso DECIMAL(5,2),
-    porcentaje DECIMAL(5,2),
-    libre DECIMAL(5,2),
+    total BIGINT,
+    enUso BIGINT,
+    porcentaje BIGINT,
+    libre BIGINT,
     fechaHora DATETIME
+);
+
+CREATE TABLE MemoriaCPU (
+    id INT AUTO_INCREMENT,
+    total BIGINT,
+    enUso BIGINT,
+    porcentaje BIGINT,
+    libre BIGINT,
+    fechaHora DATETIME,
+    PRIMARY KEY (id)
 );

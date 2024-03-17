@@ -14,6 +14,7 @@ static int write_to_proc(struct seq_file *file_proc, void *v)
 {
     unsigned long total_cpu_time = jiffies_to_msecs(get_jiffies_64());
     unsigned long total_usage = 0;
+    unsigned long free_cpu_time;
     struct task_struct *task;
 
     // Calculating total CPU time
@@ -21,14 +22,17 @@ static int write_to_proc(struct seq_file *file_proc, void *v)
         total_usage += jiffies_to_msecs(task->utime + task->stime);
     }
 
-    // Printing CPU usage information to /proc
+    // Calculating free CPU time
+    free_cpu_time = total_cpu_time - total_usage;
+
     seq_printf(file_proc, "{\n\"cpu_total\":%lu,\n", total_cpu_time);
+    seq_printf(file_proc, "\"cpu_uso\":%lu,\n", total_usage);
+    seq_printf(file_proc, "\"cpu_libre\":%lu,\n", free_cpu_time);
     seq_printf(file_proc, "\"cpu_porcentaje\":%lu\n", (total_usage * 100) / total_cpu_time);
     seq_printf(file_proc, "}\n");
 
     return 0;
 }
-
 static int abrir_aproc(struct inode *inode, struct file *file)
 {
     return single_open(file, write_to_proc, NULL);
