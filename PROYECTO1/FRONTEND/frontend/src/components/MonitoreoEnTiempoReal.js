@@ -1,19 +1,6 @@
-import React from "react";
-import { PieChart, Pie, Cell } from "recharts";
-
-const data = [
-    { name: "A", value: 400 },
-    { name: "B", value: 300 },
-    { name: "C", value: 300 },
-    { name: "D", value: 200 },
-];
-
-const data2 = [
-    { name: "A", value: 100 },
-    { name: "B", value: 100 },
-    { name: "C", value: 100 },
-    { name: "D", value: 100 },
-];
+import React, { useEffect, useState } from "react";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
+import axios from 'axios';
 
 const COLORS = [
     "#C7B299",
@@ -29,48 +16,53 @@ const COLORS = [
 ];
 
 const MonitoreoEnTiempoReal = () => {
+    const [ramData, setRamData] = useState([]);
+
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            axios.get('http://192.168.1.42:8080/ram')
+                .then(response => {
+                    const data = response.data;
+                    setRamData([
+                        { name: 'Total', value: data.totalRam },
+                        { name: 'En Uso', value: data.memoriaEnUso },
+                        { name: 'Libre', value: data.libre },
+                    ]);
+                    console.log('RAM data:', data);
+                })
+                .catch(error => {
+                    console.error('Error fetching RAM data:', error);
+                });
+        }, 1000); // Actualiza cada 3 segundos
+
+        // Limpia el intervalo cuando el componente se desmonta
+        return () => clearInterval(interval);
+    }, []);
+
     return (
-        <div className="chart-container" style={{ display: "flex", justifyContent: "center" }}>
-            <div className="pie-chart" >
-                <h1>RAM</h1>
-                <PieChart width={400} height={400}>
-                    <Pie
-                        data={data}
-                        cx={200}
-                        cy={200}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                    >
-                        {data.map((entry, index) => (
-                            <Cell
-                                key={`cell-${index}`}
-                                fill={COLORS[index % COLORS.length]}
-                            />
-                        ))}
-                    </Pie>
-                </PieChart>
-            </div>
-            <div className="pie-chart">
-                <h1>CPU</h1>
-                <PieChart width={400} height={400}>
-                    <Pie
-                        data={data2}
-                        cx={200}
-                        cy={200}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                    >
-                        {data2.map((entry, index) => (
-                            <Cell
-                                key={`cell-${index}`}
-                                fill={COLORS[index % COLORS.length]}
-                            />
-                        ))}
-                    </Pie>
-                </PieChart>
-            </div>
+        <div className="pie-chart">
+            <h1>RAM</h1>
+            <PieChart width={400} height={400}>
+                <Pie
+                    data={ramData}
+                    cx={200}
+                    cy={200}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                >
+                    {ramData.map((entry, index) => (
+                        <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                        />
+                    ))}
+                </Pie>
+                <Tooltip />
+            </PieChart>
         </div>
     );
 };
