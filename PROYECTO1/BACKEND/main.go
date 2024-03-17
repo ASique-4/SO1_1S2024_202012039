@@ -23,6 +23,95 @@ type RamData struct {
 	FechaHora  string `json:"fechaHora"`
 }
 
+// Datos de la CPU
+type CpuData struct {
+	Total      uint64 `json:"totalCpu"`
+	EnUso      uint64 `json:"cpuEnUso"`
+	Porcentaje uint64 `json:"porcentaje"`
+	Libre      uint64 `json:"libre"`
+	FechaHora  string `json:"fechaHora"`
+}
+
+// Función para manejar las solicitudes HTTP POST a /cpu
+func saveCpuData(w http.ResponseWriter, r *http.Request) {
+	// Leer los datos de /proc/cpu_so1_1s2024
+	file, err := os.Open("/proc/cpu_so1_1s2024")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	var cpu CpuData
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&cpu)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Guardar los datos en la base de datos
+	now := time.Now().Format("2006-01-02 15:04:05")
+	_, err = db.Exec("INSERT INTO MemoriaCPU (total, enUso, porcentaje, libre, fechaHora) VALUES (?, ?, ?, ?, ?)", cpu.Total, cpu.EnUso, cpu.Porcentaje, cpu.Libre, now)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Responder al cliente con un código de estado 201 (Created)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(`{"message": "Datos de CPU guardados"}`))
+}
+
+// Función para manejar las solicitudes HTTP GET a /cpu
+func getCpuData(w http.ResponseWriter, r *http.Request) {
+	// Leer los datos de /proc/cpu_so1_1s2024
+	file, err := os.Open("/proc/cpu_so1_1s2024")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	var cpu CpuData
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&cpu)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Guardar los datos en la base de datos
+	now := time.Now().Format("2006-01-02 15:04:05")
+	_, err = db.Exec("INSERT INTO MemoriaCPU (total, enUso, porcentaje, libre, fechaHora) VALUES (?, ?, ?, ?, ?)", cpu.Total, cpu.EnUso, cpu.Porcentaje, cpu.Libre, now)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Consultar el último dato ingresado en la tabla MemoriaCPU
+	row := db.QueryRow("SELECT total, enUso, porcentaje, libre, fechaHora FROM MemoriaCPU ORDER BY fechaHora DESC LIMIT 1")
+
+	var dato CpuData
+	err = row.Scan(&dato.Total, &dato.EnUso, &dato.Porcentaje, &dato.Libre, &dato.FechaHora)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Convertir los datos a JSON
+	jsonData, err := json.Marshal(dato)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Enviar los datos al cliente
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonData)
+}
+
 // Conexión a la base de datos
 var db *sql.DB
 
@@ -144,6 +233,12 @@ func main() {
 
 	// Manejar la ruta GET para obtener datos de RAM
 	router.HandleFunc("/ram", getRamData).Methods("GET")
+
+	// Manejar la ruta POST para guardar datos de CPU
+	router.HandleFunc("/cpu", saveCpuData).Methods("POST")
+
+	// Manejar la ruta GET para obtener datos de CPU
+	router.HandleFunc("/cpu", getCpuData).Methods("GET")
 
 	// Configurar CORS
 	c := cors.New(cors.Options{
