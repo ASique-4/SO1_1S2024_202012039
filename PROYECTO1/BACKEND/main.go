@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"encoding/json"
 	"log"
@@ -74,6 +75,10 @@ func saveCpuData(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCpuData(w http.ResponseWriter, r *http.Request) {
+	// Primero, guarda los datos de la CPU
+	saveCpuData(w, r)
+
+	// Luego, obtén los datos de la CPU
 	row := db.QueryRow("SELECT total, enUso, porcentaje, libre, fechaHora FROM MemoriaCPU ORDER BY fechaHora DESC LIMIT 1")
 
 	var dato CpuData
@@ -231,6 +236,99 @@ func getAllRamData(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
+// Definir una estructura para los datos de los procesos
+type ProcessData struct {
+	Pid   int    `json:"pid"`
+	Name  string `json:"name"`
+	User  int    `json:"user"`
+	State int    `json:"state"`
+	Ram   int    `json:"ram"`
+	Child []struct {
+		Pid      int    `json:"pid"`
+		Name     string `json:"name"`
+		State    int    `json:"state"`
+		PidPadre int    `json:"pidPadre"`
+	} `json:"child"`
+}
+
+// Función para manejar las solicitudes HTTP GET a /procesos
+func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
+	// Abrir el archivo /proc/cpu_so1_1s2024
+	file, err := os.Open("/proc/cpu_so1_1s2024")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	// Escanear el contenido del archivo línea por línea
+	scanner := bufio.NewScanner(file)
+	var processData ProcessData
+	processes := make([]ProcessData, 0)
+
+	// Analizar el contenido del archivo y generar los datos de los procesos
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.Contains(line, "\"pid\":") {
+			if processData.Pid != 0 {
+				processes = append(processes, processData)
+			}
+			processData = ProcessData{}
+			continue
+		}
+		if strings.Contains(line, "\"pid\":") {
+			pid, _ := strconv.Atoi(strings.Split(line, ":")[1])
+			processData.Pid = pid
+		}
+		if strings.Contains(line, "\"name\":") {
+			processData.Name = strings.Split(line, ":")[1]
+		}
+		if strings.Contains(line, "\"user\":") {
+			user, _ := strconv.Atoi(strings.Split(line, ":")[1])
+			processData.User = user
+		}
+		if strings.Contains(line, "\"state\":") {
+			state, _ := strconv.Atoi(strings.Split(line, ":")[1])
+			processData.State = state
+		}
+		if strings.Contains(line, "\"ram\":") {
+			ram, _ := strconv.Atoi(strings.Split(line, ":")[1])
+			processData.Ram = ram
+		}
+		if strings.Contains(line, "\"child\":") {
+			continue
+		}
+		if strings.Contains(line, "\"pidPadre\":") {
+			pidPadre, _ := strconv.Atoi(strings.Split(line, ":")[1])
+			child := struct {
+				Pid      int    `json:"pid"`
+				Name     string `json:"name"`
+				State    int    `json:"state"`
+				PidPadre int    `json:"pidPadre"`
+			}{}
+			child.Pid = processData.Pid
+			child.Name = processData.Name
+			child.State = processData.State
+			child.PidPadre = pidPadre
+			processData.Child = append(processData.Child, child)
+		}
+	}
+	// Añadir el último proceso a la lista
+	processes = append(processes, processData)
+
+	// Convertir los datos de los procesos a JSON
+	jsonData, err := json.Marshal(processes)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Escribir la respuesta HTTP
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
+}
+
 func main() {
 	// Cargar variables de entorno desde el archivo .env
 	err := godotenv.Load()
@@ -281,6 +379,9 @@ func main() {
 
 	// Manejar la ruta GET para obtener todos los datos de RAM
 	router.HandleFunc("/ram/all", getAllRamData).Methods("GET")
+
+	// Manejar la ruta GET para obtener los datos de los procesos
+	router.HandleFunc("/procesos", handleGetProcesses).Methods("GET")
 
 	// Configurar CORS
 	c := cors.New(cors.Options{
