@@ -260,6 +260,7 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Convertir la lista de procesos a JSON
 	processesJSON, err := json.Marshal(processesInterface)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -275,10 +276,22 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 		PidPadre int
 	}
 
-	// Y una lista de procesos como esta:
 	var processes []Process
 
-	// Puedes iterar sobre los procesos y insertarlos en la base de datos de esta manera:
+	// Convertir processesInterface a []Process y agregar a processes
+	for _, processInterface := range processesInterface.([]interface{}) {
+		processMap := processInterface.(map[string]interface{})
+		var process Process
+		process.Pid = int(processMap["Pid"].(float64))
+		process.Name = processMap["Name"].(string)
+		process.Ram = int(processMap["Ram"].(float64))
+		process.State = int(processMap["State"].(float64))
+		process.User = int(processMap["User"].(float64))
+		process.PidPadre = int(processMap["PidPadre"].(float64))
+		processes = append(processes, process)
+	}
+
+	// Iterar sobre los procesos y insertarlos en la base de datos
 	for _, process := range processes {
 		if process.PidPadre == 0 {
 			// Insertar en ProcesoPadre
