@@ -305,21 +305,54 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 
 	// Iterar sobre los procesos y insertarlos en la base de datos
 	for _, process := range processes {
+		var count int
 		if process.PidPadre == 0 {
-			// Insertar en ProcesoPadre
-			_, err = db.Exec("INSERT INTO ProcesoPadre (pid, name, ram, state, user) VALUES (?, ?, ?, ?, ?)",
-				process.Pid, process.Name, process.Ram, process.State, process.User)
+			// Verificar si el proceso ya existe en ProcesoPadre
+			err = db.QueryRow("SELECT COUNT(*) FROM ProcesoPadre WHERE pid = ?", process.Pid).Scan(&count)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			if count == 0 {
+				// Insertar en ProcesoPadre
+				_, err = db.Exec("INSERT INTO ProcesoPadre (pid, name, ram, state, user) VALUES (?, ?, ?, ?, ?)",
+					process.Pid, process.Name, process.Ram, process.State, process.User)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			} else {
+				// Actualizar en ProcesoPadre
+				_, err = db.Exec("UPDATE ProcesoPadre SET name = ?, ram = ?, state = ?, user = ? WHERE pid = ?",
+					process.Name, process.Ram, process.State, process.User, process.Pid)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
 		} else {
-			// Insertar en ProcesoHijo
-			_, err = db.Exec("INSERT INTO ProcesoHijo (pid, name, pidPadre, state) VALUES (?, ?, ?, ?)",
-				process.Pid, process.Name, process.PidPadre, process.State)
+			// Verificar si el proceso ya existe en ProcesoHijo
+			err = db.QueryRow("SELECT COUNT(*) FROM ProcesoHijo WHERE pid = ?", process.Pid).Scan(&count)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
+			}
+			if count == 0 {
+				// Insertar en ProcesoHijo
+				_, err = db.Exec("INSERT INTO ProcesoHijo (pid, name, pidPadre, state) VALUES (?, ?, ?, ?)",
+					process.Pid, process.Name, process.PidPadre, process.State)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			} else {
+				// Actualizar en ProcesoHijo
+				_, err = db.Exec("UPDATE ProcesoHijo SET name = ?, pidPadre = ?, state = ? WHERE pid = ?",
+					process.Name, process.PidPadre, process.State, process.Pid)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
 			}
 		}
 	}
