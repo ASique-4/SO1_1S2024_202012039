@@ -1,0 +1,31 @@
+version: '3'
+services:
+  base:
+    image: "mysql"
+    container_name: 'MYSQL_Base'
+    environment:
+      MYSQL_ROOT_PASSWORD: base123
+    volumes:
+      - base_mysql:/var/lib/mysql      
+    ports:
+      - "3306:3306"
+  backend:
+    image: "golang"
+    container_name: 'GO_Backend'
+    volumes:
+      - ./backend:/go/src/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - base
+  frontend:
+    image: "node"
+    container_name: 'NODE_Frontend'
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+volumes:
+  base_mysql: 

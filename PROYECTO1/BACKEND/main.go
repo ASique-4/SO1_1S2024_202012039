@@ -266,6 +266,39 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	type Process struct {
+		Pid      int
+		Name     string
+		Ram      int
+		State    int
+		User     int
+		PidPadre int
+	}
+
+	// Y una lista de procesos como esta:
+	var processes []Process
+
+	// Puedes iterar sobre los procesos y insertarlos en la base de datos de esta manera:
+	for _, process := range processes {
+		if process.PidPadre == 0 {
+			// Insertar en ProcesoPadre
+			_, err = db.Exec("INSERT INTO ProcesoPadre (pid, name, ram, state, user) VALUES (?, ?, ?, ?, ?)",
+				process.Pid, process.Name, process.Ram, process.State, process.User)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		} else {
+			// Insertar en ProcesoHijo
+			_, err = db.Exec("INSERT INTO ProcesoHijo (pid, name, pidPadre, state) VALUES (?, ?, ?, ?)",
+				process.Pid, process.Name, process.PidPadre, process.State)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+
 	// Escribir la respuesta HTTP
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
