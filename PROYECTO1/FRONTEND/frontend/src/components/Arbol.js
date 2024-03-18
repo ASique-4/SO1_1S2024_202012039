@@ -14,7 +14,7 @@ const VisjsTree = () => {
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        axios.get('http://192.168.1.42:8080/procesos')
+        axios.get('http://localhost:8080/procesos')
             .then(response => {
                 setProcesses(response.data);
             })

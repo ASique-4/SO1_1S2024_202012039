@@ -10,7 +10,7 @@ const CambioEstados = () => {
     const [pid, setPid] = useState(null);
 
     const handleNew = async () => {
-        const response = await axios.post('http://192.168.1.42:8080/procesos/iniciar');
+        const response = await axios.post('http://localhost:8080/procesos/iniciar');
         setPid(response.data.pid);
     
         nodes.add({ id: 'new', label: 'New', color: '#f44336' }); 
@@ -22,20 +22,20 @@ const CambioEstados = () => {
     };
 
     const handleStop = async () => {
-        await axios.post('http://192.168.1.42:8080/procesos/detener?pid=' + pid);
+        await axios.post('http://localhost:8080/procesos/detener?pid=' + pid);
 
         edges.add({ id: 'running-ready', from: 'running', to: 'ready' });
     };
 
     const handleResume = async () => {
-        await axios.post('http://192.168.1.42:8080/procesos/reanudar?pid=' + pid);
+        await axios.post('http://localhost:8080/procesos/reanudar?pid=' + pid);
 
         const edgeId = edges.getIds().find(id => id.startsWith('running-ready'));
         edges.update({ id: edgeId, color: { color: 'red' } });
     };
 
     const handleKill = async () => {
-        await axios.post('http://192.168.1.42:8080/procesos/matar?pid=' + pid);
+        await axios.post('http://localhost:8080/procesos/matar?pid=' + pid);
 
         nodes.add({ id: 'terminated', label: 'Terminated', color: '#9e9e9e' }); 
         edges.add({ id: 'running-terminated', from: 'running', to: 'terminated' });

@@ -21,7 +21,7 @@ const MonitoreoEnTiempoReal = () => {
 
     useEffect(() => {
         const intervalRam = setInterval(() => {
-            axios.get('http://192.168.1.42:8080/ram')
+            axios.get('http://localhost:8080/ram')
                 .then(response => {
                     const data = response.data;
                     setRamData([
@@ -36,7 +36,7 @@ const MonitoreoEnTiempoReal = () => {
         }, 1000); // Actualiza cada 3 segundos
 
         const intervalCpu = setInterval(() => {
-            axios.get('http://192.168.1.42:8080/cpu')
+            axios.get('http://localhost:8080/cpu')
                 .then(response => {
                     const data = response.data;
                     setCpuData([

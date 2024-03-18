@@ -8,7 +8,7 @@ const MonitoreoHistorico = () => {
 
     useEffect(() => {
         const fetchData = () => {
-            axios.get('http://192.168.1.42:8080/ram/all')
+            axios.get('http://localhost:8080/ram/all')
                 .then(response => {
                     setRamData(response.data.map(item => ({
                         name: item.fechaHora,
@@ -20,7 +20,7 @@ const MonitoreoHistorico = () => {
                     console.error('Error fetching RAM data:', error);
                 });
 
-            axios.get('http://192.168.1.42:8080/cpu/all')
+            axios.get('http://localhost:8080/cpu/all')
                 .then(response => {
                     setCpuData(response.data.map(item => ({
                         name: item.fechaHora,
