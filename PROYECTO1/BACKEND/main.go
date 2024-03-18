@@ -284,21 +284,37 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 			log.Println("Error al obtener PID del proceso")
 			continue
 		}
-		pidPadre, ok := process["pidPadre"].(float64)
 
-		if !ok {
-			// Insertar en ProcesoPadre
-			_, err := db.Exec("INSERT INTO ProcesoPadre (pid, name, ram, state, user) VALUES (?, ?, ?, ?, ?)",
-				int(pid), process["name"], process["ram"], process["state"], process["user"])
-			if err != nil {
-				log.Println("Error al insertar en ProcesoPadre:", err)
-			}
-		} else {
-			// Insertar en ProcesoHijo
-			_, err := db.Exec("INSERT INTO ProcesoHijo (pid, name, pidPadre, state) VALUES (?, ?, ?, ?)",
-				int(pid), process["name"], int(pidPadre), process["state"])
-			if err != nil {
-				log.Println("Error al insertar en ProcesoHijo:", err)
+		// Insertar en ProcesoPadre
+		_, err := db.Exec("INSERT INTO ProcesoPadre (pid, name, ram, state, user) VALUES (?, ?, ?, ?, ?)",
+			int(pid), process["name"], process["ram"], process["state"], process["user"])
+		if err != nil {
+			log.Println("Error al insertar en ProcesoPadre:", err)
+		}
+
+		// Verificar si el proceso tiene hijos
+		children, ok := process["child"].([]interface{})
+		if ok {
+			// Iterar sobre los procesos hijos
+			for _, childInterface := range children {
+				child, ok := childInterface.(map[string]interface{})
+				if !ok {
+					log.Println("Error al obtener el proceso hijo")
+					continue
+				}
+
+				childPid, ok := child["pid"].(float64)
+				if !ok {
+					log.Println("Error al obtener PID del proceso hijo")
+					continue
+				}
+
+				// Insertar en ProcesoHijo
+				_, err := db.Exec("INSERT INTO ProcesoHijo (pid, name, pidPadre, state) VALUES (?, ?, ?, ?)",
+					int(childPid), child["name"], int(pid), child["state"])
+				if err != nil {
+					log.Println("Error al insertar en ProcesoHijo:", err)
+				}
 			}
 		}
 	}
