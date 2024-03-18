@@ -236,7 +236,6 @@ func getAllRamData(w http.ResponseWriter, r *http.Request) {
 }
 
 // Función para manejar las solicitudes HTTP GET a /procesos
-// Función para manejar las solicitudes HTTP GET a /procesos
 func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 	// Abrir el archivo /proc/cpu_so1_1s2024
 	file, err := os.Open("/proc/cpu_so1_1s2024")
@@ -268,11 +267,6 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Escribir la respuesta HTTP
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(processesJSON)
-
 	// Convertir el JSON de procesos a un slice de bytes
 	processesBytes := []byte(processesJSON)
 
@@ -280,7 +274,7 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 	var processes []map[string]interface{}
 	err = json.Unmarshal(processesBytes, &processes)
 	if err != nil {
-		log.Println("Error al convertir JSON de procesos:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -311,6 +305,11 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	// Escribir la respuesta HTTP
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(processesJSON)
 }
 
 var process *exec.Cmd
