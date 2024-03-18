@@ -272,6 +272,109 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 	w.Write(processesJSON)
 }
 
+var process *exec.Cmd
+
+func StartProcess(w http.ResponseWriter, r *http.Request) {
+	cmd := exec.Command("bash", "-c", "./proyecto1")
+	err := cmd.Start()
+	if err != nil {
+		http.Error(w, "Error al iniciar el proceso", http.StatusInternalServerError)
+		return
+	}
+
+	// Obtener el PID del proceso hijo
+	childPID := cmd.Process.Pid
+
+	// Almacenar el cmd para futuras operaciones si es necesario
+	process = cmd
+
+	// Responder al cliente con el PID del proceso hijo
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"pid": ` + strconv.Itoa(childPID) + `}`))
+}
+
+func StopProcess(w http.ResponseWriter, r *http.Request) {
+	pidStr := r.URL.Query().Get("pid")
+	if pidStr == "" {
+		http.Error(w, "Se requiere el parámetro 'pid'", http.StatusBadRequest)
+		return
+	}
+
+	pid, err := strconv.Atoi(pidStr)
+	if err != nil {
+		http.Error(w, "El parámetro 'pid' debe ser un número entero", http.StatusBadRequest)
+		return
+	}
+
+	// Enviar señal SIGSTOP al proceso con el PID proporcionado stop kill -SIGSTOP PID
+	cmd := exec.Command("kill", "-SIGSTOP", strconv.Itoa(pid))
+	err = cmd.Run()
+	if err != nil {
+		http.Error(w, "Error al detener el proceso con PID "+strconv.Itoa(pid), http.StatusInternalServerError)
+		return
+	}
+
+	// Responder al cliente con un mensaje de éxito
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message": "Proceso con PID ` + strconv.Itoa(pid) + ` detenido"}`))
+}
+
+func ResumeProcess(w http.ResponseWriter, r *http.Request) {
+	pidStr := r.URL.Query().Get("pid")
+	if pidStr == "" {
+		http.Error(w, "Se requiere el parámetro 'pid'", http.StatusBadRequest)
+		return
+	}
+
+	pid, err := strconv.Atoi(pidStr)
+	if err != nil {
+		http.Error(w, "El parámetro 'pid' debe ser un número entero", http.StatusBadRequest)
+		return
+	}
+
+	// Enviar señal SIGCONT al proceso con el PID proporcionado kill -SIGCONT PID
+	cmd := exec.Command("kill", "-SIGCONT", strconv.Itoa(pid))
+	err = cmd.Run()
+	if err != nil {
+		http.Error(w, "Error al reanudar el proceso con PID "+strconv.Itoa(pid), http.StatusInternalServerError)
+		return
+	}
+
+	// Responder al cliente con un mensaje de éxito
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message": "Proceso con PID ` + strconv.Itoa(pid) + ` reanudado"}`))
+}
+
+func KillProcess(w http.ResponseWriter, r *http.Request) {
+	pidStr := r.URL.Query().Get("pid")
+	if pidStr == "" {
+		http.Error(w, "Se requiere el parámetro 'pid'", http.StatusBadRequest)
+		return
+	}
+
+	pid, err := strconv.Atoi(pidStr)
+	if err != nil {
+		http.Error(w, "El parámetro 'pid' debe ser un número entero", http.StatusBadRequest)
+		return
+	}
+
+	// Enviar señal SIGCONT al proceso con el PID proporcionado KILL -9 PID o KILL SIGTERM PID
+	cmd := exec.Command("kill", "-9", strconv.Itoa(pid))
+	err = cmd.Run()
+	if err != nil {
+		http.Error(w, "Error al matar el proceso con PID "+strconv.Itoa(pid), http.StatusInternalServerError)
+		return
+	}
+
+	// Responder al cliente con un mensaje de éxito
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message": "Proceso con PID ` + strconv.Itoa(pid) + ` terminado"}`))
+}
+
 func main() {
 	// Cargar variables de entorno desde el archivo .env
 	err := godotenv.Load()
@@ -325,6 +428,18 @@ func main() {
 
 	// Manejar la ruta GET para obtener los datos de los procesos
 	router.HandleFunc("/procesos", handleGetProcesses).Methods("GET")
+
+	// Manejar la ruta POST para iniciar un proceso
+	router.HandleFunc("/procesos/iniciar", StartProcess).Methods("POST")
+
+	// Manejar la ruta POST para detener un proceso
+	router.HandleFunc("/procesos/detener", StopProcess).Methods("POST")
+
+	// Manejar la ruta POST para reanudar un proceso
+	router.HandleFunc("/procesos/reanudar", ResumeProcess).Methods("POST")
+
+	// Manejar la ruta POST para matar un proceso
+	router.HandleFunc("/procesos/matar", KillProcess).Methods("POST")
 
 	// Configurar CORS
 	c := cors.New(cors.Options{
