@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"database/sql"
 	"encoding/json"
 	"log"
@@ -49,7 +48,8 @@ func saveCpuData(w http.ResponseWriter, r *http.Request) {
 	lines := strings.Split(string(out), "\n")
 	fields := strings.Fields(lines[3])
 
-	idle, err := strconv.ParseFloat(fields[11], 64)
+	idleStr := strings.Replace(fields[11], ",", ".", -1)
+	idle, err := strconv.ParseFloat(idleStr, 64)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -71,7 +71,6 @@ func saveCpuData(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(`{"message": "Datos de CPU guardados"}`))
 }
 
 func getCpuData(w http.ResponseWriter, r *http.Request) {
@@ -236,21 +235,6 @@ func getAllRamData(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
-// Definir una estructura para los datos de los procesos
-type ProcessData struct {
-	Pid   int    `json:"pid"`
-	Name  string `json:"name"`
-	User  int    `json:"user"`
-	State int    `json:"state"`
-	Ram   int    `json:"ram"`
-	Child []struct {
-		Pid      int    `json:"pid"`
-		Name     string `json:"name"`
-		State    int    `json:"state"`
-		PidPadre int    `json:"pidPadre"`
-	} `json:"child"`
-}
-
 // Función para manejar las solicitudes HTTP GET a /procesos
 func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 	// Abrir el archivo /proc/cpu_so1_1s2024
@@ -261,63 +245,22 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// Escanear el contenido del archivo línea por línea
-	scanner := bufio.NewScanner(file)
-	var processData ProcessData
-	processes := make([]ProcessData, 0)
-
-	// Analizar el contenido del archivo y generar los datos de los procesos
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.Contains(line, "\"pid\":") {
-			if processData.Pid != 0 {
-				processes = append(processes, processData)
-			}
-			processData = ProcessData{}
-			continue
-		}
-		if strings.Contains(line, "\"pid\":") {
-			pid, _ := strconv.Atoi(strings.Split(line, ":")[1])
-			processData.Pid = pid
-		}
-		if strings.Contains(line, "\"name\":") {
-			processData.Name = strings.Split(line, ":")[1]
-		}
-		if strings.Contains(line, "\"user\":") {
-			user, _ := strconv.Atoi(strings.Split(line, ":")[1])
-			processData.User = user
-		}
-		if strings.Contains(line, "\"state\":") {
-			state, _ := strconv.Atoi(strings.Split(line, ":")[1])
-			processData.State = state
-		}
-		if strings.Contains(line, "\"ram\":") {
-			ram, _ := strconv.Atoi(strings.Split(line, ":")[1])
-			processData.Ram = ram
-		}
-		if strings.Contains(line, "\"child\":") {
-			continue
-		}
-		if strings.Contains(line, "\"pidPadre\":") {
-			pidPadre, _ := strconv.Atoi(strings.Split(line, ":")[1])
-			child := struct {
-				Pid      int    `json:"pid"`
-				Name     string `json:"name"`
-				State    int    `json:"state"`
-				PidPadre int    `json:"pidPadre"`
-			}{}
-			child.Pid = processData.Pid
-			child.Name = processData.Name
-			child.State = processData.State
-			child.PidPadre = pidPadre
-			processData.Child = append(processData.Child, child)
-		}
+	// Decodificar el archivo JSON
+	var data map[string]interface{}
+	err = json.NewDecoder(file).Decode(&data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	// Añadir el último proceso a la lista
-	processes = append(processes, processData)
 
-	// Convertir los datos de los procesos a JSON
-	jsonData, err := json.Marshal(processes)
+	// Extraer la lista de procesos
+	processesInterface, ok := data["processes"]
+	if !ok {
+		http.Error(w, "No se encontraron datos de procesos", http.StatusInternalServerError)
+		return
+	}
+
+	processesJSON, err := json.Marshal(processesInterface)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -326,7 +269,7 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 	// Escribir la respuesta HTTP
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(jsonData)
+	w.Write(processesJSON)
 }
 
 func main() {

@@ -46,7 +46,7 @@ static int escribir_a_proc(struct seq_file *file_proc, void *v)
     seq_printf(file_proc, "{\n\"cpu_total\":%lu,\n", total_cpu_time);
     seq_printf(file_proc, "\"cpu_uso\":%lu,\n", total_usage);
     seq_printf(file_proc, "\"cpu_libre\":%lu,\n", free_cpu_time);
-    seq_printf(file_proc, "\"cpu_porcentaje\":%lu\n", (total_usage * 100) / total_cpu_time);
+    seq_printf(file_proc, "\"cpu_porcentaje\":%lu,\n", (total_usage * 100) / total_cpu_time);
 
     seq_printf(file_proc, "\"processes\":[\n");
     int b = 0;
