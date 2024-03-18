@@ -285,11 +285,8 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		pidPadre, ok := process["pidPadre"].(float64)
-		if !ok {
-			pidPadre = 0 // Si no hay PID padre, se establece como 0
-		}
 
-		if pidPadre == 0 {
+		if !ok {
 			// Insertar en ProcesoPadre
 			_, err := db.Exec("INSERT INTO ProcesoPadre (pid, name, ram, state, user) VALUES (?, ?, ?, ?, ?)",
 				int(pid), process["name"], process["ram"], process["state"], process["user"])

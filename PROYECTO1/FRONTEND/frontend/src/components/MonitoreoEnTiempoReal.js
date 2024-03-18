@@ -25,8 +25,8 @@ const MonitoreoEnTiempoReal = () => {
                 .then(response => {
                     const data = response.data;
                     setRamData([
-                        { name: 'En Uso', value: data.memoriaEnUso },
-                        { name: 'Libre', value: data.libre },
+                        { name: 'En Uso', value: parseFloat(((data.memoriaEnUso / data.totalRam) * 100).toFixed(2)) },
+                        { name: 'Libre', value: parseFloat((((data.totalRam - data.memoriaEnUso) / data.totalRam) * 100).toFixed(2)) },
                     ]);
                     console.log('RAM data:', data);
                 })
