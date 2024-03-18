@@ -1,55 +1,77 @@
-import React, { useState } from 'react';
-import ReactFlow from 'react-flow-renderer';
+import React, { useEffect, useRef, useState } from 'react';
+import { DataSet } from 'vis-data';
+import { Network } from 'vis-network';
+import axios from 'axios';
 
 const CambioEstados = () => {
-    const [pid, setPid] = useState('');
-    const [elements, setElements] = useState([]);
+    const networkRef = useRef(null);
+    const [nodes, setNodes] = useState(new DataSet([]));
+    const [edges, setEdges] = useState(new DataSet([]));
+    const [pid, setPid] = useState(null);
 
     const handleNew = async () => {
-        const response = await fetch('/procesos/iniciar', { method: 'POST' });
-        const data = await response.json();
-        setPid(data.pid);
-        setElements((els) => [
-            ...els,
-            { id: 'new', data: { label: `New: ${data.pid}` }, position: { x: 0, y: 0 } },
-        ]);
+        const response = await axios.post('http://192.168.1.42:8080/procesos/iniciar');
+        setPid(response.data.pid);
+    
+        nodes.add({ id: 'new', label: 'New', color: '#f44336' }); 
+        nodes.add({ id: 'ready', label: 'Ready', color: '#4caf50' }); 
+        nodes.add({ id: 'running', label: 'Running', color: '#2196f3' }); 
+
+        edges.add({ id: 'new-ready', from: 'new', to: 'ready' });
+        edges.add({ id: 'ready-running', from: 'ready', to: 'running' });
     };
 
     const handleStop = async () => {
-        await fetch('/procesos/detener', { method: 'POST', body: JSON.stringify({ pid }) });
-        setElements((els) => [
-            ...els,
-            { id: 'stop', data: { label: 'Stop' }, position: { x: 100, y: 0 }, sourcePosition: 'right', targetPosition: 'left' },
-            { id: 'e1-2', source: 'new', target: 'stop', animated: true },
-        ]);
+        await axios.post('http://192.168.1.42:8080/procesos/detener?pid=' + pid);
+
+        edges.add({ id: 'running-ready', from: 'running', to: 'ready' });
     };
 
-    const handleReady = async () => {
-        await fetch('/procesos/reanudar', { method: 'POST', body: JSON.stringify({ pid }) });
-        setElements((els) => [
-            ...els,
-            { id: 'ready', data: { label: 'Ready' }, position: { x: 200, y: 0 }, sourcePosition: 'right', targetPosition: 'left' },
-            { id: 'e2-3', source: 'stop', target: 'ready', animated: true },
-        ]);
+    const handleResume = async () => {
+        await axios.post('http://192.168.1.42:8080/procesos/reanudar?pid=' + pid);
+
+        const edgeId = edges.getIds().find(id => id.startsWith('running-ready'));
+        edges.update({ id: edgeId, color: { color: 'red' } });
     };
 
     const handleKill = async () => {
-        await fetch('/procesos/matar', { method: 'POST', body: JSON.stringify({ pid }) });
-        setElements((els) => [
-            ...els,
-            { id: 'kill', data: { label: 'Kill' }, position: { x: 300, y: 0 }, sourcePosition: 'right', targetPosition: 'left' },
-            { id: 'e3-4', source: 'ready', target: 'kill', animated: true },
-        ]);
+        await axios.post('http://192.168.1.42:8080/procesos/matar?pid=' + pid);
+
+        nodes.add({ id: 'terminated', label: 'Terminated', color: '#9e9e9e' }); 
+        edges.add({ id: 'running-terminated', from: 'running', to: 'terminated' });
     };
+
+    const handleClean = () => {
+        setNodes(new DataSet([]));
+        setEdges(new DataSet([]));
+        setPid(null);
+    }
+
+    useEffect(() => {
+        const container = networkRef.current;
+
+        const data = {
+            nodes,
+            edges,
+        };
+
+        const options = {
+            // specify your network options here
+        };
+
+        new Network(container, data, options);
+    }, [nodes, edges]); // Agrega nodes y edges como dependencias del useEffect
+
 
     return (
         <div className="button-container">
             <button className="new-button" onClick={handleNew}>New</button>
             <button className="stop-button" onClick={handleStop}>Stop</button>
-            <button className="ready-button" onClick={handleReady}>Ready</button>
+            <button className="ready-button" onClick={handleResume}>Resume</button>
             <button className="kill-button" onClick={handleKill}>Kill</button>
+            <button className="clean-button" onClick={handleClean}>Clean</button>
             <p className="pid-text">PID: {pid}</p>
-            <ReactFlow elements={elements} />
+            <div ref={networkRef} style={{ height: '400px' }}></div>
         </div>
     );
 };
