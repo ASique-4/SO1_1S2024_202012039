@@ -282,12 +282,24 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 	for _, processInterface := range processesInterface.([]interface{}) {
 		processMap := processInterface.(map[string]interface{})
 		var process Process
-		process.Pid = int(processMap["Pid"].(float64))
-		process.Name = processMap["Name"].(string)
-		process.Ram = int(processMap["Ram"].(float64))
-		process.State = int(processMap["State"].(float64))
-		process.User = int(processMap["User"].(float64))
-		process.PidPadre = int(processMap["PidPadre"].(float64))
+		if pid, ok := processMap["Pid"].(float64); ok {
+			process.Pid = int(pid)
+		}
+		if name, ok := processMap["Name"].(string); ok {
+			process.Name = name
+		}
+		if ram, ok := processMap["Ram"].(float64); ok {
+			process.Ram = int(ram)
+		}
+		if state, ok := processMap["State"].(float64); ok {
+			process.State = int(state)
+		}
+		if user, ok := processMap["User"].(float64); ok {
+			process.User = int(user)
+		}
+		if pidPadre, ok := processMap["PidPadre"].(float64); ok {
+			process.PidPadre = int(pidPadre)
+		}
 		processes = append(processes, process)
 	}
 
