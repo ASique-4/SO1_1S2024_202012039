@@ -236,6 +236,7 @@ func getAllRamData(w http.ResponseWriter, r *http.Request) {
 }
 
 // Función para manejar las solicitudes HTTP GET a /procesos
+// Función para manejar las solicitudes HTTP GET a /procesos
 func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 	// Abrir el archivo /proc/cpu_so1_1s2024
 	file, err := os.Open("/proc/cpu_so1_1s2024")
@@ -267,100 +268,49 @@ func handleGetProcesses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type Process struct {
-		Pid      int
-		Name     string
-		Ram      int
-		State    int
-		User     int
-		PidPadre int
-	}
-
-	var processes []Process
-
-	// Convertir processesInterface a []Process y agregar a processes
-	for _, processInterface := range processesInterface.([]interface{}) {
-		processMap := processInterface.(map[string]interface{})
-		var process Process
-		if pid, ok := processMap["Pid"].(float64); ok {
-			process.Pid = int(pid)
-		}
-		if name, ok := processMap["Name"].(string); ok {
-			process.Name = name
-		}
-		if ram, ok := processMap["Ram"].(float64); ok {
-			process.Ram = int(ram)
-		}
-		if state, ok := processMap["State"].(float64); ok {
-			process.State = int(state)
-		}
-		if user, ok := processMap["User"].(float64); ok {
-			process.User = int(user)
-		}
-		if pidPadre, ok := processMap["PidPadre"].(float64); ok {
-			process.PidPadre = int(pidPadre)
-		}
-		processes = append(processes, process)
-	}
-
-	// Iterar sobre los procesos y insertarlos en la base de datos
-	for _, process := range processes {
-		var count int
-		if process.PidPadre == 0 {
-			// Verificar si el proceso ya existe en ProcesoPadre
-			err = db.QueryRow("SELECT COUNT(*) FROM ProcesoPadre WHERE pid = ?", process.Pid).Scan(&count)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			if count == 0 {
-				// Insertar en ProcesoPadre
-				_, err = db.Exec("INSERT INTO ProcesoPadre (pid, name, ram, state, user) VALUES (?, ?, ?, ?, ?)",
-					process.Pid, process.Name, process.Ram, process.State, process.User)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			} else {
-				// Actualizar en ProcesoPadre
-				_, err = db.Exec("UPDATE ProcesoPadre SET name = ?, ram = ?, state = ?, user = ? WHERE pid = ?",
-					process.Name, process.Ram, process.State, process.User, process.Pid)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			}
-		} else {
-			// Verificar si el proceso ya existe en ProcesoHijo
-			err = db.QueryRow("SELECT COUNT(*) FROM ProcesoHijo WHERE pid = ?", process.Pid).Scan(&count)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			if count == 0 {
-				// Insertar en ProcesoHijo
-				_, err = db.Exec("INSERT INTO ProcesoHijo (pid, name, pidPadre, state) VALUES (?, ?, ?, ?)",
-					process.Pid, process.Name, process.PidPadre, process.State)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			} else {
-				// Actualizar en ProcesoHijo
-				_, err = db.Exec("UPDATE ProcesoHijo SET name = ?, pidPadre = ?, state = ? WHERE pid = ?",
-					process.Name, process.PidPadre, process.State, process.Pid)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			}
-		}
-	}
-
 	// Escribir la respuesta HTTP
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(processesJSON)
+
+	// Convertir el JSON de procesos a un slice de bytes
+	processesBytes := []byte(processesJSON)
+
+	// Insertar los datos de procesos en las tablas ProcesoPadre y ProcesoHijo
+	var processes []map[string]interface{}
+	err = json.Unmarshal(processesBytes, &processes)
+	if err != nil {
+		log.Println("Error al convertir JSON de procesos:", err)
+		return
+	}
+
+	for _, process := range processes {
+		pid, ok := process["pid"].(float64)
+		if !ok {
+			log.Println("Error al obtener PID del proceso")
+			continue
+		}
+		pidPadre, ok := process["pidPadre"].(float64)
+		if !ok {
+			pidPadre = 0 // Si no hay PID padre, se establece como 0
+		}
+
+		if pidPadre == 0 {
+			// Insertar en ProcesoPadre
+			_, err := db.Exec("INSERT INTO ProcesoPadre (pid, name, ram, state, user) VALUES (?, ?, ?, ?, ?)",
+				int(pid), process["name"], process["ram"], process["state"], process["user"])
+			if err != nil {
+				log.Println("Error al insertar en ProcesoPadre:", err)
+			}
+		} else {
+			// Insertar en ProcesoHijo
+			_, err := db.Exec("INSERT INTO ProcesoHijo (pid, name, pidPadre, state) VALUES (?, ?, ?, ?)",
+				int(pid), process["name"], int(pidPadre), process["state"])
+			if err != nil {
+				log.Println("Error al insertar en ProcesoHijo:", err)
+			}
+		}
+	}
 }
 
 var process *exec.Cmd
