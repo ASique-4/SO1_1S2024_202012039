@@ -1,0 +1,122 @@
+[
+    {
+        "name": "Shape of You",
+        "album": "÷",
+        "year": "2017",
+        "rank": "1"
+    },
+    {
+        "name": "Stairway to Heaven",
+        "album": "Led Zeppelin IV",
+        "year": "1971",
+        "rank": "2"
+    },
+    {
+        "name": "Lose Yourself",
+        "album": "8 Mile Soundtrack",
+        "year": "2002",
+        "rank": "3"
+    },
+    {
+        "name": "Clarity",
+        "album": "Clarity",
+        "year": "2012",
+        "rank": "4"
+    },
+    {
+        "name": "Mr. Brightside",
+        "album": "Hot Fuss",
+        "year": "2003",
+        "rank": "5"
+    },
+    {
+        "name": "Take Five",
+        "album": "Time Out",
+        "year": "1959",
+        "rank": "6"
+    },
+    {
+        "name": "Jolene",
+        "album": "Jolene",
+        "year": "1974",
+        "rank": "7"
+    },
+    {
+        "name": "No Woman, No Cry",
+        "album": "Natty Dread",
+        "year": "1974",
+        "rank": "8"
+    },
+    {
+        "name": "Enter Sandman",
+        "album": "Metallica",
+        "year": "1991",
+        "rank": "9"
+    },
+    {
+        "name": "Sweet Home Chicago",
+        "album": "King of the Delta Blues Singers",
+        "year": "1937",
+        "rank": "10"
+    },
+    {
+        "name": "Bohemian Rhapsody",
+        "album": "A Night at the Opera",
+        "year": "1975",
+        "rank": "11"
+    },
+    {
+        "name": "Blinding Lights",
+        "album": "After Hours",
+        "year": "2020",
+        "rank": "12"
+    },
+    {
+        "name": "Smells Like Teen Spirit",
+        "album": "Nevermind",
+        "year": "1991",
+        "rank": "13"
+    },
+    {
+        "name": "Titanium",
+        "album": "Nothing but the Beat",
+        "year": "2011",
+        "rank": "14"
+    },
+    {
+        "name": "Wonderwall",
+        "album": "(What's the Story) Morning Glory?",
+        "year": "1995",
+        "rank": "15"
+    },
+    {
+        "name": "Billie Jean",
+        "album": "Thriller",
+        "year": "1982",
+        "rank": "16"
+    },
+    {
+        "name": "Hotel California",
+        "album": "Hotel California",
+        "year": "1976",
+        "rank": "17"
+    },
+    {
+        "name": "Hey Jude",
+        "album": "The Beatles",
+        "year": "1968",
+        "rank": "18"
+    },
+    {
+        "name": "Like a Rolling Stone",
+        "album": "Highway 61 Revisited",
+        "year": "1965",
+        "rank": "19"
+    },
+    {
+        "name": "Let It Be",
+        "album": "Let It Be",
+        "year": "1970",
+        "rank": "20"
+    }
+]
