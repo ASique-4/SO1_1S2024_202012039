@@ -118,6 +118,7 @@ code {
 .new-button,
 .stop-button,
 .ready-button,
+.clean-button,
 .kill-button {
   padding: 0.5rem 1rem;
   margin-right: 1rem;
@@ -129,23 +130,28 @@ code {
 }
 
 .new-button {
-  background-color: #90EE90; /* Verde claro para indicar "new" */
+  background-color: #90EE90; 
   color: var(--text-100);
 }
 
 .stop-button {
-  background-color: #FFA500; /* Naranja */
+  background-color: #FFA500; 
   color: var(--text-100);
 }
 
 
 .ready-button {
-  background-color: #4682B4; /* Azul acero para indicar "ready" */
+  background-color: #4682B4; 
   color: var(--text-100);
 }
 
 .kill-button {
-  background-color: #ff6347; /* Tonos de rojo */
+  background-color: #DE8F5F; 
+  color: var(--text-100);
+}
+
+.clean-button {
+  background-color: #ADBC9F; 
   color: var(--text-100);
 }
 

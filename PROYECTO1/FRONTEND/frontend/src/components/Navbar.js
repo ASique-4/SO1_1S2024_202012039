@@ -22,7 +22,7 @@ const Navbar = () => {
                 </li>
                 <div className="navbar-divider"></div>
                 <li className="navbar-item">
-                    <Link to="/CambioEstados" className="navbar-link">Simulacióin de Cambios de Estado</Link>
+                    <Link to="/CambioEstados" className="navbar-link">Simulación de Cambios de Estado</Link>
                 </li>
             </ul>
         </nav>
