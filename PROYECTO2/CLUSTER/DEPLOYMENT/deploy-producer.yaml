@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy-producer
+  namespace: namespace-proyecto2
+spec:
+  selector:
+    matchLabels:
+      name: deploy-producer
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: deploy-producer
+    spec:
+      containers:
+      - name: producer-go
+        image: angelsique/producer-go
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5003
+        env:
+        - name: PORT
+          valueFrom:
+            secretKeyRef:
+              name: secret-env-producer
+              key: PORT
+        - name: KAFKA_BROKERS
+          valueFrom:
+            secretKeyRef:
+              name: secret-env-producer
+              key: KAFKA_BROKERS
+      - name: producer-rust
+        image: angelsique/producer-rust
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5004
+        env:
+        - name: PORT
+          valueFrom:
+            secretKeyRef:
+              name: secret-env-producer
+              key: PORT
+        - name: KAFKA_BROKERS
+          valueFrom:
+            secretKeyRef:
+              name: secret-env-producer
+              key: KAFKA_BROKERS
+      imagePullSecrets:
+        - name: dockerhubpull
+
+
+
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: rust-ruta
+#   namespace: namespace-proyecto2
+# spec:
+#   selector:
+#     matchLabels:
+#       role: rust-ruta
+#   replicas: 1
+#   template:
+#     metadata:
+#       labels:
+#         role: rust-ruta
+
+#     spec:
+#       containers:
+#       - name: rust-cliente
+#         image: angelsique/producer # Golang producer
+#         ports:
+#         - containerPort: 5001
+#       # - name: rust-server
+#       #   image: angelsique/rust_producer # Rust producer
+#       #   ports:
+#       #   - containerPort: 5002
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: service-producer
+# spec:
+#   type: LoadBalancer
+#   ports:
+#   - name: rust-client-port
+#     port: 5001
+#     targetPort: 5001
+#   - name: rust-server-port
+#     port: 5002
+#     targetPort: 5002
+#   selector:
+#     role: rust-ruta

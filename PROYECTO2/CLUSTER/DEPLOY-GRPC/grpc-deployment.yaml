@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-ruta
+  namespace: namespace-proyecto2
+spec:
+  selector:
+    matchLabels:
+      role: grpc-ruta
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        role: grpc-ruta
+
+    spec:
+      containers:
+      - name: grpc-cliente
+        image: angelsique/grpc-client
+        ports:
+        - containerPort: 5001
+      - name: grpc-server
+        image: angelsique/grpc-server
+        ports:
+        - containerPort: 5002
+        env:
+        - name: ENV_RUTA_SERVER_GO
+          value: "http://service-producer:5003/sendMessage"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-grpc
+  namespace: namespace-proyecto2
+spec:
+  type: ClusterIP
+  ports:
+  - name: grpc-client-port
+    port: 5001
+    targetPort: 5001
+  - name: grpc-server-port
+    port: 5002
+    targetPort: 5002
+  selector:
+    role: grpc-ruta

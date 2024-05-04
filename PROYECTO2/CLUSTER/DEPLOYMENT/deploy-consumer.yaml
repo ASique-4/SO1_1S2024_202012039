@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy-consumer
+  namespace: namespace-proyecto2
+spec:
+  selector:
+    matchLabels:
+      name: deploy-consumer
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: deploy-consumer
+    spec:
+      containers:
+      - name: consumer
+        image: angelsique/consumer-kafka
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5005

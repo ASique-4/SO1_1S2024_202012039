@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rust-ruta
+  namespace: namespace-proyecto2
+spec:
+  selector:
+    matchLabels:
+      role: rust-ruta
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        role: rust-ruta
+
+    spec:
+      containers:
+      - name: rust-cliente
+        image: angelsique/rust-client
+        ports:
+        - containerPort: 8000
+      - name: rust-server
+        image: angelsique/rust-server
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ENV_RUTA_SERVER_GO
+          value: "http://service-producer:5004/sendMessage"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-rust
+  namespace: namespace-proyecto2
+spec:
+  type: ClusterIP
+  ports:
+  - name: rust-client-port
+    port: 8000
+    targetPort: 8000
+  - name: rust-server-port
+    port: 8080
+    targetPort: 8080
+  selector:
+    role: rust-ruta

@@ -1,0 +1,15 @@
+ 
+kafka-producer-golang 5003
+docker: producer-go
+
+kafka-consumer-golang 5005
+docker: consumer-kafka
+
+kafka-producer-rust 5004
+docker: producer-rust
+
+grpc-client 5001
+grpc-server 5002
+
+rust-client 8000
+rust-server 8080

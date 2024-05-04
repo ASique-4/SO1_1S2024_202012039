@@ -1,0 +1,12 @@
+FROM rust:latest as builder
+WORKDIR /usr/src/app
+COPY . .
+RUN cargo build --release
+FROM ubuntu:latest
+RUN apt-get update && apt-get install -y libssl-dev
+COPY --from=builder /usr/src/app/target/release/rust-producer /usr/local/bin/rust-producer
+EXPOSE 5004
+CMD ["rust-producer"]
+
+# Para crear la imagen
+# docker build -t davila30/kafka_rust_producer .

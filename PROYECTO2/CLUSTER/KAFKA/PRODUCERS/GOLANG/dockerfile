@@ -1,0 +1,17 @@
+# Establecer la imagen base
+FROM golang:1.22.0
+
+# Establecer el directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copiar los archivos del proyecto al contenedor
+COPY . .
+
+# Compilar el proyecto
+RUN go build -o producer .
+
+# Exponer el puerto en el que se ejecuta la aplicación
+EXPOSE 5003
+
+# Comando para ejecutar la aplicación
+CMD ["./producer"]
